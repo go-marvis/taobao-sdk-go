@@ -1,16 +1,16 @@
-package trades
+package trade
 
 import (
 	"github.com/go-marvis/taobao-sdk-go/core"
-	"github.com/go-marvis/taobao-sdk-go/service/taobao/trades/sold"
+	"github.com/go-marvis/taobao-sdk-go/service/taobao/trade/fullinfo"
 )
 
 type Service struct {
-	Sold *sold.Service
+	Fullinfo *fullinfo.Service
 }
 
 func NewService(config *core.Config) *Service {
 	return &Service{
-		Sold: sold.NewService(config),
+		Fullinfo: fullinfo.NewService(config),
 	}
 }

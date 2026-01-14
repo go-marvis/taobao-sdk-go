@@ -1,7 +1,10 @@
 package core
 
 import (
+	"bytes"
+	"encoding/json"
 	"encoding/xml"
+	"log"
 	"net/http"
 )
 
@@ -12,6 +15,14 @@ type ApiResp struct {
 }
 
 func (resp ApiResp) UnmarshalBody(val any, config *Config) error {
+	if config.Debug {
+		buf := bytes.NewBuffer(make([]byte, 0, len(resp.RawBody)+1024))
+		if err := json.Indent(buf, resp.RawBody, "", "  "); err != nil {
+			buf = bytes.NewBuffer(resp.RawBody)
+		}
+		log.Printf("[DEBUG] [API] response:\n%s\n", buf)
+	}
+
 	return config.Serializer.Unmarshal(resp.RawBody, val)
 }
 
@@ -19,10 +30,10 @@ func (resp ApiResp) UnmarshalBody(val any, config *Config) error {
 type ErrorResponse struct {
 	XMLName   xml.Name `xml:"error_response"`
 	RequestId string   `json:"request_id,omitempty" xml:"request_id,omitempty"` // 平台颁发的每次请求访问的唯一标识
+	Code      int      `json:"code,omitempty" xml:"code,omitempty"`             // 请求失败返回的错误码
 	Msg       string   `json:"msg,omitempty" xml:"msg,omitempty"`               // 请求失败返回的错误信息
 	SubCode   string   `json:"sub_code,omitempty" xml:"sub_code,omitempty"`     // 请求失败返回的子错误码
 	SubMsg    string   `json:"sub_msg,omitempty" xml:"sub_msg,omitempty"`       // 请求失败返回的子错误信息
-	Code      int      `json:"code,omitempty" xml:"code,omitempty"`             // 请求失败返回的错误码
 }
 
 func (c ErrorResponse) Error() string {

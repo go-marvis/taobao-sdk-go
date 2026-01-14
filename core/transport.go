@@ -8,7 +8,7 @@ import (
 	"encoding/hex"
 	"hash"
 	"io"
-	"log/slog"
+	"log"
 	"maps"
 	"net/http"
 	"net/url"
@@ -16,8 +16,6 @@ import (
 	"strings"
 	"time"
 )
-
-type ApiFormat string
 
 const (
 	defaultContentType = "application/x-www-form-urlencoded;charset=utf-8"
@@ -81,9 +79,13 @@ func Request(ctx context.Context, apiReq *ApiReq, config *Config, options ...Req
 
 	values.Set("sign", sign(values, config))
 
+	url := config.BaseUrl
 	payload := values.Encode()
-	slog.Debug(apiReq.HttpMethod, "url", config.BaseUrl, "payload", payload)
-	req, err := http.NewRequestWithContext(ctx, apiReq.HttpMethod, config.BaseUrl, strings.NewReader(payload))
+	if config.Debug {
+		log.Printf("[DEBUG] [API] %s %s payload:\n%s\n", apiReq.HttpMethod, url, payload)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, apiReq.HttpMethod, url, strings.NewReader(payload))
 	if err != nil {
 		return nil, err
 	}

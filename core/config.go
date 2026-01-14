@@ -7,26 +7,16 @@ import (
 	"golang.org/x/time/rate"
 )
 
-const (
-	JSON ApiFormat = "json"
-	XML  ApiFormat = "xml"
-)
-
-type SignMethod string
-
-const (
-	MD5  SignMethod = "md5"
-	HMAC SignMethod = "hmac"
-)
-
 type Config struct {
-	AppKey     string
-	Secret     string
-	BaseUrl    string
-	SignMethod SignMethod
-	Format     ApiFormat
-	Version    string
-	Session    string
+	AppKey     string     // 应用标识
+	Secret     string     // 请求加密
+	BaseUrl    string     // 服务地址
+	SignMethod SignMethod // 签名摘要算法
+	Format     ApiFormat  // 响应格式
+	Version    string     // API协议版本
+	Session    string     // 用户登录授权信息
+
+	Debug bool // 调试模式, 日志输出请求和响应
 
 	Retry   int
 	Limiter *rate.Limit

@@ -11,6 +11,12 @@ type ApiReq struct {
 	QueryParams url.Values
 }
 
+func NewApiReq() *ApiReq {
+	return &ApiReq{
+		QueryParams: url.Values{},
+	}
+}
+
 type ReqOption struct {
 	Header http.Header
 
