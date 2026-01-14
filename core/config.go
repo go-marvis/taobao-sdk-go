@@ -19,7 +19,7 @@ type Config struct {
 	Debug bool // 调试模式, 日志输出请求和响应
 
 	Retry   int
-	Limiter *rate.Limit
+	Limiter *rate.Limiter
 
 	HttpClient HttpClient
 	ReqTimeout time.Duration
