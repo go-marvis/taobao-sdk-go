@@ -6,9 +6,11 @@ import (
 	"crypto/hmac"
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"hash"
 	"io"
 	"log"
+	"log/slog"
 	"maps"
 	"net/http"
 	"net/url"
@@ -96,7 +98,35 @@ func Request(ctx context.Context, apiReq *ApiReq, config *Config, options ...Req
 		}
 	}
 
-	return doSend(config.HttpClient, req)
+	var apiResp *ApiResp
+	for range config.Retry {
+		if config.Limiter != nil {
+			if err = config.Limiter.Wait(ctx); err != nil {
+				return nil, err
+			}
+		}
+
+		apiResp, err = doSend(config.HttpClient, req)
+		if apiResp.StatusCode != http.StatusOK {
+			slog.Error("http error", "status", apiResp.StatusCode)
+			return apiResp, fmt.Errorf("http error, status=%d", apiResp.StatusCode)
+		}
+
+		errResp := &ErrorResponse{}
+		if err := config.Serializer.Unmarshal(apiResp.RawBody, errResp); err != nil {
+			slog.Error("unmarshal error", "err", err)
+			return apiResp, err
+		}
+		if errResp.Code != 0 {
+			slog.Error("api error", "code", errResp.Code, "msg", errResp.Msg)
+			time.Sleep(2 * time.Second)
+			continue
+		}
+
+		err = nil
+		break
+	}
+	return apiResp, err
 }
 
 func sign(params url.Values, config *Config) string {
